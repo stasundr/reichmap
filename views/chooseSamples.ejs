@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>reichmap</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="css/kube.min.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/jquery-ui.min.css">
+
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/lodash.min.js"></script>
+</head>
+<body>
+<row centered>
+    <column cols="8">
+    </column>
+</row>
+
+<row centered>
+    <column cols="8">
+        <h1 class="title">reichmap</h1>
+        <p class="lead">Search any samples you need. Only <strong>exact</strong> matches from *.anno file will be added.</p>
+
+        <div class="ui-widget">
+            <input type="text" id="tags" placeholder="Search">
+            <span>
+                <button class="btn" type="black" id="add"><i class="fa fa-plus"></i></button>
+                <button class="btn" type="black" id="remove"><i class="fa fa-minus"></i></button>
+                <button class="btn" id="create"><i class="fa fa-globe"> Create map</i></button>
+            </span>
+        </div>
+    </column>
+</row>
+
+<row centered>
+    <column cols="8">
+        <table class="table-responsive">
+            <thead>
+            <tr>
+                <th>Sample ID</th>
+                <th>Ethnicity/Culture</th>
+            </tr>
+            </thead>
+        </table>
+        <table class="table-responsive" id="list"></table>
+    </column>
+</row>
+
+<script>
+    var samples = [];
+
+    var updateSamplesList = function() {
+        $("#list").empty();
+
+        samples.forEach(function(sample) {
+            var line = "<tbody> <tr> " +
+                    "<td>" + sample['Official_ID'] + "</td> " +
+                    "<td>" + sample['New_Pop'] + "</td> " +
+                    "</tr> </tbody>";
+            $("#list").prepend(line);
+        });
+    }
+
+    $(function() {
+        $( "#tags" ).autocomplete({
+            source: <%- autocomplete %>,
+            minLength: 2
+        });
+    });
+
+    $(document).on("click", "#add", function () {
+        $.ajax({
+            url: "/search",
+            async: false,
+            type: "POST",
+            data: JSON.stringify({ query: $("#tags").val() }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(found) {
+                samples = samples.map(function(sample) { return JSON.stringify(sample) });
+                found = found.map(function(sample) { return JSON.stringify(sample) });
+                samples = _.union(samples, found);
+                samples = samples.map(function(sample) { return JSON.parse(sample) });
+
+                updateSamplesList();
+            }
+        });
+    });
+
+    $(document).on("click", "#remove", function () {
+        $.ajax({
+            url: "/search",
+            async: false,
+            type: "POST",
+            data: JSON.stringify({ query: $("#tags").val() }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(found) {
+                samples = samples.map(function(sample) { return JSON.stringify(sample) });
+                found = found.map(function(sample) { return JSON.stringify(sample) });
+                samples = _.difference(samples, found);
+                samples = samples.map(function(sample) { return JSON.parse(sample) });
+
+                updateSamplesList();
+            }
+        });
+    });
+
+    $(document).on("click", "#create", function () {
+        $.ajax({
+            url: "/create",
+            async: false,
+            type: "POST",
+            data: JSON.stringify(samples),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(found) {
+                window.location = "/map";
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
