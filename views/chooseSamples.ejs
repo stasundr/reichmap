@@ -30,6 +30,7 @@
             <span>
                 <button class="btn" type="black" id="add"><i class="fa fa-plus"></i></button>
                 <button class="btn" type="black" id="remove"><i class="fa fa-minus"></i></button>
+                <button class="btn" type="black" id="clear"><i class="fa fa-trash"></i></button>
                 <button class="btn" id="create"><i class="fa fa-globe"> Create map</i></button>
             </span>
         </div>
@@ -108,6 +109,11 @@
                 updateSamplesList();
             }
         });
+    });
+
+    $(document).on("click", "#clear", function () {
+        samples = [];
+        updateSamplesList();
     });
 
     $(document).on("click", "#create", function () {
